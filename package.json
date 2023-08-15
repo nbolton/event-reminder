@@ -1,0 +1,28 @@
+{
+  "name": "event-reminder",
+  "version": "1.0.0",
+  "description": "Sends a Google Calendar event reminder to Slack and Twilio",
+  "main": "build/index.js",
+  "scripts": {
+    "tsc": "tsc",
+    "start": "npm run main:test",
+    "main": "tsc && node build/main.js",
+    "main:test": "tsc && node build/main.js --test",
+    "local": "tsc && functions-framework --target=check-calendar",
+    "deploy": "tsc && gcloud functions deploy check-calendar --gen2 --runtime=nodejs20 --region=europe-west2 --entry-point=check-calendar --trigger-http --allow-unauthenticated --env-vars-file .env.yaml"
+  },
+  "author": "Nick Bolton",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.3.0",
+    "@google-cloud/local-auth": "^2.1.0",
+    "@slack/web-api": "^6.9.0",
+    "googleapis": "^105.0.0",
+    "twilio": "^4.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.0",
+    "dotenv-yaml": "^0.1.4",
+    "typescript": "^5.1.6"
+  }
+}
