@@ -3,6 +3,7 @@ import path from "path";
 import process from "process";
 import { authenticate } from "@google-cloud/local-auth";
 import { google, calendar_v3 } from "googleapis";
+import { config } from "./config";
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
@@ -37,12 +38,8 @@ export class Calendar {
     console.log("test calendar integration");
 
     authorize().then(async (auth) => {
-      console.log(
-        await getNextEvents(auth, process.env.CALENDAR_BUSINESS || "", 10)
-      );
-      console.log(
-        await getNextEvents(auth, process.env.CALENDAR_PERSONAL || "", 10)
-      );
+      console.log(await getNextEvents(auth, config().CALENDAR_BUSINESS, 10));
+      console.log(await getNextEvents(auth, config().CALENDAR_PERSONAL, 10));
     });
   }
 }
@@ -53,15 +50,12 @@ export class Calendar {
  * @return {Promise<OAuth2Client|null>}
  */
 async function loadTokenIfExists() {
-  try {
-    const content = await fs.readFileSync(TOKEN_PATH, "utf8");
-    const token = JSON.parse(content);
-    return google.auth.fromJSON(token);
-  } catch (err) {
-    // HACK
-    console.debug("no token file", err);
+  if (!fs.existsSync(TOKEN_PATH)) {
     return null;
   }
+  const content = await fs.readFileSync(TOKEN_PATH, "utf8");
+  const token = JSON.parse(content);
+  return google.auth.fromJSON(token);
 }
 
 /**
@@ -89,6 +83,10 @@ async function authorize() {
   let client = await loadTokenIfExists();
   if (client) {
     return client;
+  }
+  if (!fs.existsSync(CREDENTIALS_PATH)) {
+    console.log("go to: https://console.cloud.google.com/apis/credentials");
+    throw Error(`google calendar credentials missing: ${CREDENTIALS_PATH}`);
   }
   client = (await authenticate({
     scopes: SCOPES,

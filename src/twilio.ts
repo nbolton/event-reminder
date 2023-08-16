@@ -1,3 +1,5 @@
+import { config } from "./config";
+
 export class Twilio {
   static async integTest() {
     console.log("test twilio integration");
@@ -12,14 +14,14 @@ export class Twilio {
         `<Say>Well, gotta go now, see ya!</Say>` +
         `<Pause length="2" />` +
         `</Response>`,
-      to: process.env.PHONE_NUMBER_TO,
-      from: process.env.PHONE_NUMBER_FROM,
+      to: config().PHONE_NUMBER_TO,
+      from: config().PHONE_NUMBER_FROM,
     });
   }
 }
 
 function twilio() {
-  const sid = process.env.TWILIO_SID;
-  const token = process.env.TWILIO_TOKEN;
+  const sid = config().TWILIO_SID;
+  const token = config().TWILIO_TOKEN;
   return require("twilio")(sid, token);
 }
