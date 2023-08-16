@@ -1,11 +1,12 @@
-const fs = require("fs").promises;
-const path = require("path");
-const process = require("process");
-const { authenticate } = require("@google-cloud/local-auth");
-const { google } = require("googleapis");
+import fs from "fs";
+import path from "path";
+import process from "process";
+import { authenticate } from "@google-cloud/local-auth";
+import { google } from "googleapis";
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
+
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
@@ -23,15 +24,13 @@ export class Calendar {
     throw Error("not implemented");
   }
 
-  static async testCalendar() {
-    console.log("test calendar");
+  static async integTest() {
+    console.log("test calendar integration");
 
-    authorize()
-      .then(async (auth) => {
-        listEvents(auth, process.env.CALENDAR_BUSINESS);
-        listEvents(auth, process.env.CALENDAR_PERSONAL);
-      })
-      .catch(console.error);
+    authorize().then(async (auth) => {
+      getNextEvent(auth, process.env.CALENDAR_BUSINESS || "");
+      getNextEvent(auth, process.env.CALENDAR_PERSONAL || "");
+    });
   }
 }
 
@@ -40,12 +39,13 @@ export class Calendar {
  *
  * @return {Promise<OAuth2Client|null>}
  */
-async function loadSavedCredentialsIfExist() {
+async function loadTokenIfExists() {
   try {
-    const content = await fs.readFile(TOKEN_PATH);
-    const credentials = JSON.parse(content);
-    return google.auth.fromJSON(credentials);
+    const content = await fs.readFileSync(TOKEN_PATH, "utf8");
+    const token = JSON.parse(content);
+    return google.auth.fromJSON(token);
   } catch (err) {
+    // HACK
     console.debug("no token file", err);
     return null;
   }
@@ -55,10 +55,9 @@ async function loadSavedCredentialsIfExist() {
  * Serializes credentials to a file compatible with GoogleAUth.fromJSON.
  *
  * @param {OAuth2Client} client
- * @return {Promise<void>}
  */
-async function saveCredentials(client: any) {
-  const content = await fs.readFile(CREDENTIALS_PATH);
+async function saveCredentials(client: any): Promise<void> {
+  const content = await fs.readFileSync(CREDENTIALS_PATH, "utf8");
   const keys = JSON.parse(content);
   const key = keys.installed || keys.web;
   const payload = JSON.stringify({
@@ -67,23 +66,22 @@ async function saveCredentials(client: any) {
     client_secret: key.client_secret,
     refresh_token: client.credentials.refresh_token,
   });
-  await fs.writeFile(TOKEN_PATH, payload);
+  await fs.writeFileSync(TOKEN_PATH, payload);
 }
 
 /**
  * Load or request or authorization to call APIs.
- *
  */
 async function authorize() {
-  let client = await loadSavedCredentialsIfExist();
+  let client = await loadTokenIfExists();
   if (client) {
     return client;
   }
-  client = await authenticate({
+  client = (await authenticate({
     scopes: SCOPES,
     keyfilePath: CREDENTIALS_PATH,
-  });
-  if (client.credentials) {
+  })) as any;
+  if (client?.credentials) {
     await saveCredentials(client);
   }
   return client;
