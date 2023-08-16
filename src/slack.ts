@@ -1,4 +1,5 @@
 import { WebClient } from "@slack/web-api";
+import { config } from "./config";
 
 const SLACK_CHANNEL_BUSINESS = "C02SGMLBBQ8";
 const SLACK_CHANNEL_PERSONAL = "C02RT0VV78A";
@@ -31,11 +32,11 @@ export class Slack {
 }
 
 function personalSlack() {
-  const token = process.env.PERSONAL_SLACK_TOKEN;
+  const token = config().PERSONAL_SLACK_TOKEN;
   return new WebClient(token);
 }
 
 function businessSlack() {
-  const token = process.env.BUSINESS_SLACK_TOKEN;
+  const token = config().BUSINESS_SLACK_TOKEN;
   return new WebClient(token);
 }

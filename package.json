@@ -5,10 +5,10 @@
   "main": "build/index.js",
   "scripts": {
     "tsc": "tsc",
-    "start": "npm test",
+    "start": "npm run test:integ",
     "main": "ts-node src/main.ts",
     "test": "jest",
-    "test:integ": "tsc && node build/main.js --integ-test",
+    "test:integ": "tsc && ts-node src/main.ts --integ-test",
     "local": "tsc && functions-framework --target=check-calendar",
     "deploy": "tsc && gcloud functions deploy check-calendar --gen2 --runtime=nodejs20 --region=europe-west2 --entry-point=check-calendar --trigger-http --allow-unauthenticated --env-vars-file .env.yaml"
   },
