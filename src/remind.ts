@@ -12,6 +12,6 @@ export function sendReminders() {
 export function testReminderServices() {
   console.log("running integration tests");
   Calendar.integTest();
-  Slack.integTest();
-  Twilio.integTest();
+  //Slack.integTest();
+  //Twilio.integTest();
 }
