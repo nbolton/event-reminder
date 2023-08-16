@@ -15,16 +15,17 @@ const TOKEN_PATH = path.join(process.cwd(), "token.json");
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
 
 export class CalendarEvent {
-  name: string | null | undefined;
-  date: string | null | undefined;
+  name: string | null = null;
+  date: string | null = null;
+  allDay: boolean = false;
 
   constructor(gcEvent: calendar_v3.Schema$Event | null) {
     if (!gcEvent) {
       return;
     }
-    this.name = gcEvent.summary;
-    //this.date = gcEvent.start?.dateTime || gcEvent.start?.date;
-    this.date = gcEvent.start?.dateTime;
+    this.name = gcEvent.summary || null;
+    this.date = gcEvent.start?.dateTime || gcEvent.start?.date || null;
+    this.allDay = gcEvent.start?.dateTime === undefined;
   }
 }
 
@@ -121,10 +122,8 @@ async function getNextEvents(
   let events: CalendarEvent[] = [];
   if (gcEvents && gcEvents.length !== 0) {
     console.debug(`events for ${calendarId}...`);
-    events.map((event: any, _i: any) => {
-      console.debug(`raw event data:`, event);
-      const start = event.start.dateTime || event.start.date;
-      events.push(new CalendarEvent(event));
+    gcEvents.map((gcEvent: any, _i: any) => {
+      events.push(new CalendarEvent(gcEvent));
     });
   } else {
     console.log("no upcoming events");
