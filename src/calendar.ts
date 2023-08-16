@@ -12,19 +12,27 @@ const SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
 const TOKEN_PATH = path.join(process.cwd(), "token.json");
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
 
-export function checkCalendar() {
-  console.log("check calendar");
+export class CalendarEvent {
+  name: string = "";
+  date: string = "";
 }
 
-export async function testCalendar() {
-  console.log("test calendar");
+export class Calendar {
+  static getCalendarEvents(): CalendarEvent[] {
+    console.log("get calendar events");
+    throw Error("not implemented");
+  }
 
-  authorize()
-    .then(async (auth) => {
-      listEvents(auth, process.env.CALENDAR_BUSINESS);
-      listEvents(auth, process.env.CALENDAR_PERSONAL);
-    })
-    .catch(console.error);
+  static async testCalendar() {
+    console.log("test calendar");
+
+    authorize()
+      .then(async (auth) => {
+        listEvents(auth, process.env.CALENDAR_BUSINESS);
+        listEvents(auth, process.env.CALENDAR_PERSONAL);
+      })
+      .catch(console.error);
+  }
 }
 
 /**

@@ -1,5 +1,5 @@
 import { config } from "./config";
-import { sendReminders, testReminders } from "./remind";
+import { sendReminders, testReminderServices } from "./remind";
 
 function main() {
   console.log("event reminder");
@@ -8,8 +8,8 @@ function main() {
 
   config();
 
-  if (args.includes("--test")) {
-    testReminders();
+  if (args.includes("--integ-test")) {
+    testReminderServices();
   } else {
     sendReminders();
   }
