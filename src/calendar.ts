@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import process from "process";
 import { authenticate } from "@google-cloud/local-auth";
-import { google } from "googleapis";
+import { google, calendar_v3 } from "googleapis";
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
@@ -14,8 +14,17 @@ const TOKEN_PATH = path.join(process.cwd(), "token.json");
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
 
 export class CalendarEvent {
-  name: string = "";
-  date: string = "";
+  name: string | null | undefined;
+  date: string | null | undefined;
+
+  constructor(gcEvent: calendar_v3.Schema$Event | null) {
+    if (!gcEvent) {
+      return;
+    }
+    this.name = gcEvent.summary;
+    //this.date = gcEvent.start?.dateTime || gcEvent.start?.date;
+    this.date = gcEvent.start?.dateTime;
+  }
 }
 
 export class Calendar {
@@ -28,8 +37,12 @@ export class Calendar {
     console.log("test calendar integration");
 
     authorize().then(async (auth) => {
-      getNextEvent(auth, process.env.CALENDAR_BUSINESS || "");
-      getNextEvent(auth, process.env.CALENDAR_PERSONAL || "");
+      console.log(
+        await getNextEvents(auth, process.env.CALENDAR_BUSINESS || "", 10)
+      );
+      console.log(
+        await getNextEvents(auth, process.env.CALENDAR_PERSONAL || "", 10)
+      );
     });
   }
 }
@@ -91,23 +104,33 @@ async function authorize() {
  * Lists the next 10 events on the user's primary calendar.
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
-async function listEvents(auth: any, calendarId: string) {
+async function getNextEvents(
+  auth: any,
+  calendarId: string,
+  max: number
+): Promise<CalendarEvent[]> {
   const calendar = google.calendar({ version: "v3", auth });
+  const now = new Date();
   const res = await calendar.events.list({
     calendarId: calendarId,
-    timeMin: new Date().toISOString(),
-    maxResults: 10,
+    timeMin: now.toISOString(),
+    maxResults: max,
     singleEvents: true,
     orderBy: "startTime",
   });
-  const events = res.data.items;
-  if (!events || events.length === 0) {
+
+  const gcEvents = res.data.items;
+  let events: CalendarEvent[] = [];
+  if (gcEvents && gcEvents.length !== 0) {
+    console.debug(`events for ${calendarId}...`);
+    events.map((event: any, _i: any) => {
+      console.debug(`raw event data:`, event);
+      const start = event.start.dateTime || event.start.date;
+      events.push(new CalendarEvent(event));
+    });
+  } else {
     console.log("no upcoming events");
-    return;
   }
-  console.log(`next 10 calendar events for ${calendarId}:`);
-  events.map((event: any, i: any) => {
-    const start = event.start.dateTime || event.start.date;
-    console.log(`${start} - ${event.summary}`);
-  });
+
+  return events;
 }
