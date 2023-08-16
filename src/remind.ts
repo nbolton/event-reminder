@@ -1,6 +1,6 @@
 import { Calendar } from "./calendar";
-import { testSlack } from "./slack";
-import { testTwilio } from "./twilio";
+import { Slack } from "./slack";
+import { Twilio } from "./twilio";
 
 export function sendReminders() {
   const events = Calendar.getCalendarEvents();
@@ -11,7 +11,7 @@ export function sendReminders() {
 
 export function testReminderServices() {
   console.log("running integration tests");
-  Calendar.testCalendar();
-  testSlack();
-  testTwilio();
+  Calendar.integTest();
+  Slack.integTest();
+  Twilio.integTest();
 }
