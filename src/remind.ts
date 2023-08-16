@@ -2,11 +2,11 @@ import { Calendar } from "./calendar";
 import { Slack } from "./slack";
 import { Twilio } from "./twilio";
 
-export function sendReminders() {
-  const events = Calendar.getCalendarEvents();
-  events.forEach((event) => {
-    console.log(event.name, event.date);
-  });
+export async function sendReminders() {
+  const maxMins = 3;
+  const events = await Calendar.getEvents();
+  events.filterAllDay();
+  events.filterBeyond(maxMins);
 }
 
 export function testReminderServices() {

@@ -14,23 +14,68 @@ const TOKEN_PATH = path.join(process.cwd(), "token.json");
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
 
 export class CalendarEvent {
-  name: string | null | undefined;
-  date: string | null | undefined;
+  title: string | null = null;
+  start: Date | null = null;
+  allDay: boolean = false;
 
-  constructor(gcEvent: calendar_v3.Schema$Event | null) {
+  constructor(gcEvent?: calendar_v3.Schema$Event) {
     if (!gcEvent) {
       return;
     }
-    this.name = gcEvent.summary;
-    //this.date = gcEvent.start?.dateTime || gcEvent.start?.date;
-    this.date = gcEvent.start?.dateTime;
+    const start = gcEvent.start?.dateTime || gcEvent.start?.date;
+    this.title = gcEvent.summary || null;
+    this.start = start ? new Date(start) : null;
+    this.allDay = gcEvent.start?.dateTime === undefined;
+  }
+}
+
+export class CalendarEventPair {
+  business: CalendarEvent[] = [];
+  personal: CalendarEvent[] = [];
+
+  filterAllDay() {
+    this.business = this.business.filter((e) => {
+      return !e.allDay;
+    });
+    this.personal = this.personal.filter((e) => {
+      return !e.allDay;
+    });
+  }
+
+  filterBeyond(mins: number) {
+    const now = new Date();
+    const beyond = (e: CalendarEvent) => {
+      if (!e.start) {
+        return false;
+      }
+      const ms = mins * 60000;
+      const diff = e.start.getTime() - now.getTime();
+      return diff < ms;
+    };
+    this.business = this.business.filter(beyond);
+    this.personal = this.personal.filter(beyond);
+  }
+
+  log() {
+    console.log("business events...");
+    this.business.forEach((event) => {
+      console.log(event.title, event.start);
+    });
+    console.log("personal events...");
+    this.personal.forEach((event) => {
+      console.log(event.title, event.start);
+    });
   }
 }
 
 export class Calendar {
-  static getCalendarEvents(): CalendarEvent[] {
-    console.log("get calendar events");
-    throw Error("not implemented");
+  static async getEvents(): Promise<CalendarEventPair> {
+    let pair = new CalendarEventPair();
+    await authorize().then(async (auth) => {
+      pair.business = await getNextEvents(auth, config().CALENDAR_BUSINESS, 10);
+      pair.personal = await getNextEvents(auth, config().CALENDAR_PERSONAL, 10);
+    });
+    return pair;
   }
 
   static async integTest() {
