@@ -6,7 +6,7 @@ const SLACK_CHANNEL_PERSONAL = "C02RT0VV78A";
 const SLACK_ICON_EMOJI = ":alarm_clock:";
 
 export class Slack {
-  static async integTest() {
+  static async test() {
     console.log("test business slack integration");
     businessSlack()
       .chat.postMessage({

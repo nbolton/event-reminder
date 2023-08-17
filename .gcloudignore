@@ -13,6 +13,7 @@
 .git
 .gitignore
 
-.env.yaml
+.env*.yaml
+
 node_modules
 src

@@ -5,16 +5,20 @@
   "main": "build/index.js",
   "scripts": {
     "tsc": "tsc",
-    "start": "npm run main",
+    "start": "npm run test:integ",
     "main": "ts-node src/main.ts",
-    "test": "jest",
-    "test:integ": "tsc && ts-node src/main.ts --integ-test",
-    "local": "tsc && functions-framework --target=check-calendar",
-    "deploy": "tsc && gcloud functions deploy check-calendar --gen2 --runtime=nodejs20 --region=europe-west2 --entry-point=check-calendar --trigger-http --allow-unauthenticated --env-vars-file .env.yaml"
+    "test:unit": "jest",
+    "test:integ": "tsc && ts-node src/main.ts --test",
+    "local:functions": "tsc && functions-framework --target=check-calendar",
+    "local:datastore": "gcloud beta emulators datastore start",
+    "auth:gcloud": "gcloud auth application-default login",
+    "deploy": "tsc && gcloud functions deploy check-calendar --gen2 --runtime=nodejs20 --region=europe-west2 --entry-point=check-calendar --trigger-http --allow-unauthenticated --env-vars-file .env.prod.yaml",
+    "deploy:test": "curl https://europe-west2-event-reminder-396013.cloudfunctions.net/check-calendar?test"
   },
   "author": "Nick Bolton",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/datastore": "^8.0.0",
     "@google-cloud/functions-framework": "^3.3.0",
     "@google-cloud/local-auth": "^2.1.0",
     "@slack/web-api": "^6.9.0",

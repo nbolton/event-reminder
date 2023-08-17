@@ -13,7 +13,8 @@ class Config {
   TWILIO_TOKEN: string;
 
   constructor() {
-    Config.init();
+    Config.load(".env.prod.yaml");
+    Config.load(".env.dev.yaml");
 
     this.CALENDAR_BUSINESS = Config.get("CALENDAR_BUSINESS");
     this.CALENDAR_PERSONAL = Config.get("CALENDAR_PERSONAL");
@@ -25,11 +26,10 @@ class Config {
     this.TWILIO_TOKEN = Config.get("TWILIO_TOKEN");
   }
 
-  private static init() {
-    const env = ".env.yaml";
-    if (fs.existsSync(env)) {
-      console.log(`loading ${env}`);
-      require("dotenv-yaml").config({ path: env });
+  private static load(path: string) {
+    if (fs.existsSync(path)) {
+      console.log(`loading ${path}`);
+      require("dotenv-yaml").config({ path: path });
     }
   }
 

@@ -79,7 +79,7 @@ export class Calendar {
     return pair;
   }
 
-  static async integTest() {
+  static async test() {
     console.log("test calendar integration");
 
     authorize().then(async (auth) => {

@@ -1,4 +1,5 @@
 import { Calendar } from "./calendar";
+import { Data } from "./data";
 import { Slack } from "./slack";
 import { Twilio } from "./twilio";
 
@@ -9,9 +10,11 @@ export async function sendReminders() {
   events.filterBeyond(maxMins);
 }
 
-export function testReminderServices() {
+export async function testReminderServices() {
   console.log("running integration tests");
-  Calendar.integTest();
-  //Slack.integTest();
-  //Twilio.integTest();
+  //Calendar.test();
+  //Slack.test();
+  //Twilio.test();
+  await Data.test();
+  console.log("finished integration tests");
 }

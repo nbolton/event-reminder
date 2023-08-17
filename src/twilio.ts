@@ -1,7 +1,7 @@
 import { config } from "./config";
 
 export class Twilio {
-  static async integTest() {
+  static async test() {
     console.log("test twilio integration");
     twilio().calls.create({
       twiml:

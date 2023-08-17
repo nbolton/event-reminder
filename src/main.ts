@@ -5,7 +5,7 @@ function main() {
   const args = process.argv.slice(2);
   console.debug("args:", args);
 
-  if (args.includes("--integ-test")) {
+  if (args.includes("--test")) {
     testReminderServices();
   } else {
     sendReminders();
