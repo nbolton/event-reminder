@@ -1,4 +1,4 @@
-import { Calendar, CalendarEvent } from "./calendar";
+import { Calendar } from "./calendar";
 import { config } from "./config";
 import { Data } from "./data";
 import { Slack } from "./slack";
