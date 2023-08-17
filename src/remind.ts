@@ -37,7 +37,7 @@ async function sendReminder(
     }
 
     const slack = new Slack(slackToken);
-    slack.send(slackChannel, `<b>${title}<b>\n${startStr}`);
+    slack.send(slackChannel, `*${title}*\n${startStr}`);
 
     const minsStr = event.minsStr();
     const intro = config().PHONE_INTRO;
