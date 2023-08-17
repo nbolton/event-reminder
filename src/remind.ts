@@ -44,7 +44,7 @@ async function sendReminder(
     const twilio = new Twilio();
     twilio.call(
       `<Response>` +
-        `<Pause length="2" />` +
+        `<Pause length="3" />` +
         `<Say>${intro}, you have ${eventType} ${minsStr}:</Say>` +
         `<Say>${title}</Say>` +
         `<Pause length="2" />` +
