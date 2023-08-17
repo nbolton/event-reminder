@@ -5,7 +5,7 @@
   "main": "build/index.js",
   "scripts": {
     "tsc": "tsc",
-    "start": "npm run test:integ",
+    "start": "npm run main",
     "main": "ts-node src/main.ts",
     "test": "jest",
     "test:integ": "tsc && ts-node src/main.ts --integ-test",
