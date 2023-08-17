@@ -1,24 +1,29 @@
 import { describe, expect, jest, test } from "@jest/globals";
+import { Calendar, CalendarEvent, CalendarResult } from "../calendar";
 import { sendReminders } from "../remind";
-import { Calendar, CalendarEvent, CalendarEventPair } from "../calendar";
+import { config, Config } from "../config";
 
+jest.mock("../config");
 jest.mock("../calendar");
+jest.mock("../data");
+jest.mock("../slack");
+jest.mock("../twilio");
+
 const CalendarMock = jest.mocked(Calendar);
+const CalendarEventResultMock = jest.mocked(CalendarResult);
+const mockConfig = config as jest.MockedFunction<typeof config>;
 
 describe("remind module", () => {
   test("send reminders", () => {
-    CalendarMock.getEvents.mockImplementation(async () => {
-      let e1 = new CalendarEvent();
-      e1.title = "event name 1";
-      e1.start = new Date();
-      let e2 = new CalendarEvent();
-      e2.title = "event name 2";
-      e2.start = new Date();
+    mockConfig.mockReturnValue(new Config());
 
-      const pair = new CalendarEventPair();
-      pair.business = [e1, e2];
-      pair.personal = [e1, e2];
-      return pair;
+    const e1 = new CalendarEvent("id 1", "name 1", new Date(), false);
+    const e2 = new CalendarEvent("id 2", "name 2", new Date(), false);
+
+    CalendarMock.prototype.getEvents.mockImplementation(async () => {
+      const result = new CalendarResult([e1, e2]);
+      result.events = [e1, e2];
+      return result;
     });
 
     sendReminders();

@@ -5,15 +5,16 @@
   "main": "build/index.js",
   "scripts": {
     "tsc": "tsc",
-    "start": "npm run test:integ",
+    "start": "npm run main",
     "main": "ts-node src/main.ts",
-    "test:unit": "jest",
+    "test": "jest",
     "test:integ": "tsc && ts-node src/main.ts --test",
     "local:functions": "tsc && functions-framework --target=check-calendar",
     "local:datastore": "gcloud beta emulators datastore start",
     "auth:gcloud": "gcloud auth application-default login",
     "deploy": "tsc && gcloud functions deploy check-calendar --gen2 --runtime=nodejs20 --region=europe-west2 --entry-point=check-calendar --trigger-http --allow-unauthenticated --env-vars-file .env.prod.yaml",
-    "deploy:test": "curl https://europe-west2-event-reminder-396013.cloudfunctions.net/check-calendar?test"
+    "prod:run": "curl https://europe-west2-event-reminder-396013.cloudfunctions.net/check-calendar",
+    "prod:test": "curl https://europe-west2-event-reminder-396013.cloudfunctions.net/check-calendar?test"
   },
   "author": "Nick Bolton",
   "license": "ISC",

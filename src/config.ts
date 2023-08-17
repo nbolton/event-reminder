@@ -2,15 +2,19 @@ import fs from "fs";
 
 let instance: Config;
 
-class Config {
+export class Config {
   CALENDAR_BUSINESS: string;
   CALENDAR_PERSONAL: string;
-  PERSONAL_SLACK_TOKEN: string;
-  BUSINESS_SLACK_TOKEN: string;
+  SLACK_TOKEN_PERSONAL: string;
+  SLACK_TOKEN_BUSINESS: string;
+  SLACK_CHANNEL_BUSINESS: string;
+  SLACK_CHANNEL_PERSONAL: string;
   PHONE_NUMBER_TO: string;
   PHONE_NUMBER_FROM: string;
+  PHONE_INTRO: string;
   TWILIO_SID: string;
   TWILIO_TOKEN: string;
+  DATASTORE_EMULATOR_HOST: string | null;
 
   constructor() {
     Config.load(".env.prod.yaml");
@@ -18,12 +22,16 @@ class Config {
 
     this.CALENDAR_BUSINESS = Config.get("CALENDAR_BUSINESS");
     this.CALENDAR_PERSONAL = Config.get("CALENDAR_PERSONAL");
-    this.PERSONAL_SLACK_TOKEN = Config.get("PERSONAL_SLACK_TOKEN");
-    this.BUSINESS_SLACK_TOKEN = Config.get("BUSINESS_SLACK_TOKEN");
+    this.SLACK_TOKEN_PERSONAL = Config.get("SLACK_TOKEN_PERSONAL");
+    this.SLACK_TOKEN_BUSINESS = Config.get("SLACK_TOKEN_BUSINESS");
+    this.SLACK_CHANNEL_BUSINESS = Config.get("SLACK_CHANNEL_BUSINESS");
+    this.SLACK_CHANNEL_PERSONAL = Config.get("SLACK_CHANNEL_PERSONAL");
     this.PHONE_NUMBER_TO = Config.get("PHONE_NUMBER_TO");
     this.PHONE_NUMBER_FROM = Config.get("PHONE_NUMBER_FROM");
+    this.PHONE_INTRO = Config.get("PHONE_INTRO");
     this.TWILIO_SID = Config.get("TWILIO_SID");
     this.TWILIO_TOKEN = Config.get("TWILIO_TOKEN");
+    this.DATASTORE_EMULATOR_HOST = process.env.DATASTORE_EMULATOR_HOST || null;
   }
 
   private static load(path: string) {
@@ -41,7 +49,6 @@ class Config {
     return v;
   }
 }
-
 export function config(): Config {
   if (!instance) {
     instance = new Config();

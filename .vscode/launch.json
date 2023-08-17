@@ -10,9 +10,9 @@
     },
     {
       "type": "node-terminal",
-      "name": "test:unit",
+      "name": "test",
       "request": "launch",
-      "command": "npm run test:unit",
+      "command": "npm run test",
       "cwd": "${workspaceFolder}"
     },
     {
