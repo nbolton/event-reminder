@@ -1,4 +1,4 @@
-import { Calendar } from "./calendar";
+import { Calendar, CalendarEvent } from "./calendar";
 import { config } from "./config";
 import { Data } from "./data";
 import { Slack } from "./slack";
@@ -18,6 +18,7 @@ async function sendReminder(
   const result = await calendar.getEvents(limit);
   result.filterAllDay();
   result.filterBeyond(maxMins);
+  result.filterNotAttending();
 
   if (result.empty()) {
     console.debug("no events, nothing to do");
@@ -27,9 +28,8 @@ async function sendReminder(
   for (const event of result.events) {
     const { id, title } = event;
     const startIso = event.startIso();
-    const startStr = event.startStr();
 
-    console.debug(`checking calendar event: ${JSON.stringify(event)}`);
+    console.debug(`checking calendar event, id=${id}, title=${title}`);
 
     if (await Data.readEvent(id, startIso)) {
       console.debug(`reminder already sent for id: ${id}`);
@@ -37,21 +37,14 @@ async function sendReminder(
     }
 
     const slack = new Slack(slackToken);
-    slack.send(slackChannel, `*${title}*\n${startStr}`);
+    slack.send(slackChannel, slackMessage(event));
 
-    const minsStr = event.minsStr();
-    const intro = config().PHONE_INTRO;
-    const twilio = new Twilio();
-    twilio.call(
-      `<Response>` +
-        `<Pause length="3" />` +
-        `<Say>${intro}, you have ${eventType} ${minsStr}:</Say>` +
-        `<Say>${title}</Say>` +
-        `<Pause length="2" />` +
-        `<Say>Goodbye</Say>` +
-        `<Pause length="2" />` +
-        `</Response>`
-    );
+    if (config().PHONE_ENABLE) {
+      const twilio = new Twilio();
+      twilio.call(twiml(event, eventType));
+    } else {
+      console.info("phone reminder disabled");
+    }
 
     console.debug("remembering event reminder");
     await Data.writeEvent(id, startIso);
@@ -60,6 +53,82 @@ async function sendReminder(
 
   console.debug("no reminder was sent");
   return false;
+}
+
+function slackMessage(event: CalendarEvent) {
+  const descriptionMaxLength = 200;
+  const { title, location, description, hangoutLink } = event;
+  const selfStatus = event.selfStatusExtended();
+  const startStr = event.startStr();
+
+  let message = `*${title}*\n${startStr}`;
+
+  if (selfStatus) {
+    message += `\n${selfStatus}`;
+  }
+
+  if (location) {
+    message += `\n${location}`;
+  }
+
+  if (hangoutLink) {
+    message += `\n${hangoutLink}`;
+  }
+
+  if (description) {
+    var shortDescription = htmlToText(description);
+
+    if (shortDescription.length > descriptionMaxLength) {
+      shortDescription =
+        shortDescription.slice(0, descriptionMaxLength).trim() + "...";
+    }
+    message += `\n\n${shortDescription}\n`;
+  }
+
+  return message;
+}
+
+// TODO: handle things like lists, etc.
+function htmlToText(text: string) {
+  text = text.replace(/(<([^>]+)>)/gi, "");
+
+  var entities = [
+    ["amp", "&"],
+    ["apos", "'"],
+    ["#x27", "'"],
+    ["#x2F", "/"],
+    ["#39", "'"],
+    ["#47", "/"],
+    ["lt", "<"],
+    ["gt", ">"],
+    ["nbsp", " "],
+    ["quot", '"'],
+  ];
+
+  for (var i = 0, max = entities.length; i < max; ++i) {
+    text = text.replace(
+      new RegExp("&" + entities[i][0] + ";", "g"),
+      entities[i][1]
+    );
+  }
+
+  return text;
+}
+
+function twiml(event: CalendarEvent, eventType: string): string {
+  const minsStr = event.minsStr();
+  const { title } = event;
+  const intro = config().PHONE_INTRO;
+  return (
+    `<Response>` +
+    `<Pause length="3" />` +
+    `<Say>${intro}, you have ${eventType} ${minsStr}:</Say>` +
+    `<Say>${title}</Say>` +
+    `<Pause length="2" />` +
+    `<Say>Goodbye</Say>` +
+    `<Pause length="2" />` +
+    `</Response>`
+  );
 }
 
 export async function sendReminders() {

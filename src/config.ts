@@ -12,6 +12,7 @@ export class Config {
   PHONE_NUMBER_TO: string;
   PHONE_NUMBER_FROM: string;
   PHONE_INTRO: string;
+  PHONE_ENABLE: boolean;
   TWILIO_SID: string;
   TWILIO_TOKEN: string;
   DATASTORE_EMULATOR_HOST: string | null;
@@ -30,6 +31,7 @@ export class Config {
     this.PHONE_NUMBER_TO = Config.get("PHONE_NUMBER_TO");
     this.PHONE_NUMBER_FROM = Config.get("PHONE_NUMBER_FROM");
     this.PHONE_INTRO = Config.get("PHONE_INTRO");
+    this.PHONE_ENABLE = Config.get("PHONE_ENABLE") === "true";
     this.TWILIO_SID = Config.get("TWILIO_SID");
     this.TWILIO_TOKEN = Config.get("TWILIO_TOKEN");
     this.REMINDER_TIME_MINS = Number.parseInt(Config.get("REMINDER_TIME_MINS"));

@@ -1,7 +1,7 @@
 import { authenticate } from "@google-cloud/local-auth";
 import fs from "fs";
 import { OAuth2Client } from "google-auth-library";
-import { google } from "googleapis";
+import { calendar_v3, google } from "googleapis";
 import path from "path";
 import process from "process";
 import { config } from "./config";
@@ -9,18 +9,66 @@ import { config } from "./config";
 const SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
 const TOKEN_PATH = path.join(process.cwd(), "token.json");
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
+const DEBUG_EVENT_DATA = false;
+
+export class CalendarAttendee {
+  email: string | null;
+  status: string | null;
+  organizer: boolean;
+  self: boolean;
+
+  constructor(
+    email: string | null,
+    status: string | null,
+    organizer: boolean,
+    self: boolean
+  ) {
+    this.email = email;
+    this.status = status;
+    this.organizer = organizer;
+    this.self = self;
+  }
+}
 
 export class CalendarEvent {
   id: string;
   title: string;
   start: Date;
   allDay: boolean;
+  description?: string | null;
+  location?: string | null;
+  hangoutLink?: string | null;
+  attendees: CalendarAttendee[];
+  selfHost: boolean = false;
+  selfStatus: string | null = null;
 
-  constructor(id: string, title: string, start: Date, allDay: boolean) {
+  constructor(
+    id: string,
+    title: string,
+    start: Date,
+    allDay: boolean,
+    description?: string | null,
+    location?: string | null,
+    hangoutLink?: string | null,
+    attendees?: CalendarAttendee[]
+  ) {
     this.id = id;
     this.title = title;
     this.start = start;
     this.allDay = allDay;
+    this.description = description;
+    this.location = location;
+    this.hangoutLink = hangoutLink;
+    this.attendees = attendees || [];
+
+    this.attendees.forEach((attendee) => {
+      const { status, organizer, self } = attendee;
+      if (organizer && self) {
+        this.selfHost = true;
+      } else if (self && status) {
+        this.selfStatus = status;
+      }
+    });
   }
 
   startIso() {
@@ -65,6 +113,18 @@ export class CalendarEvent {
       throw Error("can't determine mins");
     }
   }
+
+  selfStatusExtended() {
+    if (this.selfHost) {
+      return "You're the host";
+    } else if (this.selfStatus) {
+      const first = this.selfStatus.charAt(0).toUpperCase();
+      const capitalized = first + this.selfStatus.slice(1);
+      return `Status: ${capitalized}`;
+    } else {
+      return null;
+    }
+  }
 }
 
 export class CalendarResult {
@@ -94,15 +154,18 @@ export class CalendarResult {
     this.events = this.events.filter(beyond);
   }
 
-  empty() {
-    return !this.events || this.events.length === 0;
+  filterNotAttending() {
+    this.events = this.events.filter((e) => {
+      if (e.attendees.length === 0) {
+        // if no attendees, own event
+        return true;
+      }
+      return e.selfStatus === "accepted" || e.selfStatus === "tentative";
+    });
   }
 
-  first() {
-    if (this.empty()) {
-      throw Error("no events");
-    }
-    return this.events[0];
+  empty() {
+    return !this.events || this.events.length === 0;
   }
 }
 
@@ -217,13 +280,21 @@ async function getNextEvents(
   const gcEvents = res.data.items;
   let events: CalendarEvent[] = [];
   if (gcEvents && gcEvents.length !== 0) {
-    console.debug(`events for ${calendarId}...`);
-    gcEvents.map((gcEvent: any, _i: any) => {
+    console.debug(`adding ${gcEvents.length} events for ${calendarId}`);
+    gcEvents.map((gcEvent: calendar_v3.Schema$Event, _i: any) => {
+      if (DEBUG_EVENT_DATA) {
+        console.debug("event", gcEvent);
+      }
+
       const startStr = gcEvent.start?.dateTime || gcEvent.start?.date;
       const id = gcEvent.id || null;
       const title = gcEvent.summary || null;
       const start = startStr ? new Date(startStr) : null;
       const allDay = gcEvent.start?.dateTime === undefined;
+      const description = gcEvent.description;
+      const location = gcEvent.location;
+      const hangoutLink = gcEvent.hangoutLink;
+
       if (id === null) {
         console.debug("skipping event with no id");
         return;
@@ -236,7 +307,31 @@ async function getNextEvents(
         console.debug(`skipping event with no title, id: ${id}`);
         return;
       }
-      events.push(new CalendarEvent(id, title, start, allDay));
+
+      const attendees: CalendarAttendee[] = [];
+      gcEvent.attendees?.forEach((gca) => {
+        attendees.push(
+          new CalendarAttendee(
+            gca.email || null,
+            gca.responseStatus || null,
+            gca.organizer || false,
+            gca.self || false
+          )
+        );
+      });
+
+      events.push(
+        new CalendarEvent(
+          id,
+          title,
+          start,
+          allDay,
+          description,
+          location,
+          hangoutLink,
+          attendees
+        )
+      );
     });
   } else {
     console.log("no upcoming events");
