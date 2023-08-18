@@ -2,4 +2,4 @@
 
 Depends on: https://cloud.google.com/sdk/docs/install
 
-Run `auth:gcloud` before running `local:datastore`.
+Run `npm run auth:gcloud` before running `npm run local:datastore`.
