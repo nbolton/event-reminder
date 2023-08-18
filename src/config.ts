@@ -17,7 +17,7 @@ export class Config {
   DATASTORE_EMULATOR_HOST: string | null;
 
   constructor() {
-    Config.load(".env.prod.yaml");
+    Config.load(".env.yaml");
     Config.load(".env.dev.yaml");
 
     this.CALENDAR_BUSINESS = Config.get("CALENDAR_BUSINESS");
