@@ -11,8 +11,8 @@ async function sendReminder(
   slackChannel: string,
   eventType: string
 ) {
-  const maxMins = 3;
   const limit = 10;
+  const maxMins = config().REMINDER_TIME_MINS;
 
   const calendar = new Calendar(calendarId, calendarAuth);
   const result = await calendar.getEvents(limit);

@@ -15,6 +15,7 @@ export class Config {
   TWILIO_SID: string;
   TWILIO_TOKEN: string;
   DATASTORE_EMULATOR_HOST: string | null;
+  REMINDER_TIME_MINS: number;
 
   constructor() {
     Config.load(".env.yaml");
@@ -31,6 +32,7 @@ export class Config {
     this.PHONE_INTRO = Config.get("PHONE_INTRO");
     this.TWILIO_SID = Config.get("TWILIO_SID");
     this.TWILIO_TOKEN = Config.get("TWILIO_TOKEN");
+    this.REMINDER_TIME_MINS = Number.parseInt(Config.get("REMINDER_TIME_MINS"));
     this.DATASTORE_EMULATOR_HOST = process.env.DATASTORE_EMULATOR_HOST || null;
   }
 
