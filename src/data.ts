@@ -23,7 +23,7 @@ export class Data {
 
     const event = events[0];
     if (!event) {
-      console.debug("no event data found");
+      console.debug("event has not yet been remembered");
       return false;
     }
     if (!event.start) {
