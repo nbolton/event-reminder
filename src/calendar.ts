@@ -63,9 +63,8 @@ export class CalendarEvent {
 
     this.attendees.forEach((attendee) => {
       const { status, organizer, self } = attendee;
-      if (organizer && self) {
-        this.selfHost = true;
-      } else if (self && status) {
+      this.selfHost = organizer && self;
+      if (self && status) {
         this.selfStatus = status;
       }
     });
@@ -134,15 +133,25 @@ export class CalendarResult {
     this.events = events;
   }
 
+  empty() {
+    return !this.events || this.events.length === 0;
+  }
+
   filterAllDay() {
+    console.debug("filter all day events");
+    const before = this.events.length;
     this.events = this.events.filter((e) => {
       return !e.allDay;
     });
+    console.debug(`filter removed ${before - this.events.length} events`);
   }
 
   filterBeyond(mins: number) {
     const now = new Date();
-    console.debug(`filter beyond, time now: ${now.toISOString()}`);
+    console.debug(
+      `filter events beyond ${mins} mins, time now: ${now.toISOString()}`
+    );
+    const before = this.events.length;
     const beyond = (e: CalendarEvent) => {
       if (!e.start) {
         return false;
@@ -152,9 +161,12 @@ export class CalendarResult {
       return diff < ms;
     };
     this.events = this.events.filter(beyond);
+    console.debug(`filter removed ${before - this.events.length} events`);
   }
 
   filterNotAttending() {
+    console.debug("filter not attending events");
+    const before = this.events.length;
     this.events = this.events.filter((e) => {
       if (e.attendees.length === 0) {
         // if no attendees, own event
@@ -162,10 +174,22 @@ export class CalendarResult {
       }
       return e.selfStatus === "accepted" || e.selfStatus === "tentative";
     });
+    console.debug(`filter removed ${before - this.events.length} events`);
   }
 
-  empty() {
-    return !this.events || this.events.length === 0;
+  filterIgnored(ignore: string[]) {
+    console.debug("filter ignored events:", ignore);
+    const before = this.events.length;
+    this.events = this.events.filter((e) => {
+      let found = false;
+      ignore.forEach((i) => {
+        if (e.title.match(i)) {
+          found = true;
+        }
+      });
+      return !found;
+    });
+    console.debug(`filter removed ${before - this.events.length} events`);
   }
 }
 

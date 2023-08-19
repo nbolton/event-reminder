@@ -17,10 +17,11 @@ export class Config {
   TWILIO_TOKEN: string;
   DATASTORE_EMULATOR_HOST: string | null;
   REMINDER_TIME_MINS: number;
+  IGNORE_EVENTS: string[] = [];
 
   constructor() {
-    Config.load(".env.yaml");
     Config.load(".env.dev.yaml");
+    Config.load(".env.yaml");
 
     this.CALENDAR_BUSINESS = Config.get("CALENDAR_BUSINESS");
     this.CALENDAR_PERSONAL = Config.get("CALENDAR_PERSONAL");
@@ -36,6 +37,11 @@ export class Config {
     this.TWILIO_TOKEN = Config.get("TWILIO_TOKEN");
     this.REMINDER_TIME_MINS = Number.parseInt(Config.get("REMINDER_TIME_MINS"));
     this.DATASTORE_EMULATOR_HOST = process.env.DATASTORE_EMULATOR_HOST || null;
+
+    const ignoreEvents = process.env.IGNORE_EVENTS;
+    if (ignoreEvents) {
+      this.IGNORE_EVENTS = ignoreEvents.split(",");
+    }
   }
 
   private static load(path: string) {

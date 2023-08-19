@@ -19,6 +19,7 @@ async function sendReminder(
   result.filterAllDay();
   result.filterBeyond(maxMins);
   result.filterNotAttending();
+  result.filterIgnored(config().IGNORE_EVENTS);
 
   if (result.empty()) {
     console.debug("no events, nothing to do");

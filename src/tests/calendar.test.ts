@@ -55,90 +55,114 @@ describe("calendar event", () => {
 });
 
 describe("calendar result", () => {
-  test("filter all day events - removed", () => {
-    const event = new CalendarEvent("id", "title", new Date(), true);
-    const result = new CalendarResult([event]);
-    result.filterAllDay();
-    expect(result.events.length).toBe(0);
-    expect(result.events.length).toBe(0);
+  describe("filter all day", () => {
+    test("removed", () => {
+      const event = new CalendarEvent("id", "title", new Date(), true);
+      const result = new CalendarResult([event]);
+      result.filterAllDay();
+      expect(result.events.length).toBe(0);
+      expect(result.events.length).toBe(0);
+    });
+
+    test("not removed", () => {
+      const event = new CalendarEvent("id", "title", new Date(), false);
+      const result = new CalendarResult([event]);
+      result.filterAllDay();
+      expect(result.events.length).toBe(1);
+    });
   });
 
-  test("filter all day events - not removed", () => {
-    const event = new CalendarEvent("id", "title", new Date(), false);
-    const result = new CalendarResult([event]);
-    result.filterAllDay();
-    expect(result.events.length).toBe(1);
+  describe("filter beyond mins", () => {
+    test("beyond removed", () => {
+      const now = new Date();
+      const start = new Date(now.getTime() + 60000 * 2);
+      const event = new CalendarEvent("id", "title", start, false);
+      const result = new CalendarResult([event]);
+      result.filterBeyond(1);
+      expect(result.events.length).toBe(0);
+    });
+
+    test("within not removed", () => {
+      const now = new Date();
+      const start = new Date(now.getTime() + 60000 * 1);
+      const event = new CalendarEvent("id", "title", start, false);
+      const result = new CalendarResult([event]);
+      result.filterBeyond(2);
+      expect(result.events.length).toBe(1);
+    });
   });
 
-  test("filter events beyond mins - removed", () => {
-    const now = new Date();
-    const start = new Date(now.getTime() + 60000 * 2);
-    const event = new CalendarEvent("id", "title", start, false);
-    const result = new CalendarResult([event]);
-    result.filterBeyond(1);
-    expect(result.events.length).toBe(0);
+  describe("filter not attending", () => {
+    test("foobar removed", () => {
+      const now = new Date();
+      const attendee = new CalendarAttendee("email", "foobar", true, true);
+      const event = new CalendarEvent(
+        "id",
+        "title",
+        now,
+        false,
+        null,
+        null,
+        null,
+        [attendee]
+      );
+      const result = new CalendarResult([event]);
+      result.filterNotAttending();
+      expect(result.events.length).toBe(0);
+    });
+
+    test("accepted not removed", () => {
+      const now = new Date();
+      const attendee = new CalendarAttendee("email", "accepted", true, true);
+      const event = new CalendarEvent(
+        "id",
+        "title",
+        now,
+        false,
+        null,
+        null,
+        null,
+        [attendee]
+      );
+      const result = new CalendarResult([event]);
+      result.filterNotAttending();
+      expect(result.events.length).toBe(1);
+    });
+
+    test("tentative not removed", () => {
+      const now = new Date();
+      const attendee = new CalendarAttendee("email", "tentative", true, true);
+      const event = new CalendarEvent(
+        "id",
+        "title",
+        now,
+        false,
+        null,
+        null,
+        null,
+        [attendee]
+      );
+      const result = new CalendarResult([event]);
+      result.filterNotAttending();
+      expect(result.events.length).toBe(1);
+    });
   });
 
-  test("filter events beyond mins - not removed", () => {
-    const now = new Date();
-    const start = new Date(now.getTime() + 60000 * 1);
-    const event = new CalendarEvent("id", "title", start, false);
-    const result = new CalendarResult([event]);
-    result.filterBeyond(2);
-    expect(result.events.length).toBe(1);
-  });
+  describe("filter ignored", () => {
+    test("removed", () => {
+      const now = new Date();
+      const event = new CalendarEvent("id", "test", now, false);
+      const result = new CalendarResult([event]);
+      result.filterIgnored(["foo", "test", "bar"]);
+      expect(result.events.length).toBe(0);
+    });
 
-  test("filter not attending - foobar removed", () => {
-    const now = new Date();
-    const attendee = new CalendarAttendee("email", "foobar", true, true);
-    const event = new CalendarEvent(
-      "id",
-      "title",
-      now,
-      false,
-      null,
-      null,
-      null,
-      [attendee]
-    );
-    const result = new CalendarResult([event]);
-    result.filterBeyond(2);
-    expect(result.events.length).toBe(1);
-  });
-
-  test("filter not attending - attending not removed", () => {
-    const now = new Date();
-    const attendee = new CalendarAttendee("email", "attending", true, true);
-    const event = new CalendarEvent(
-      "id",
-      "title",
-      now,
-      false,
-      null,
-      null,
-      null,
-      [attendee]
-    );
-    const result = new CalendarResult([event]);
-    result.filterBeyond(2);
-    expect(result.events.length).toBe(1);
-  });
-
-  test("filter not attending - tentative not removed", () => {
-    const now = new Date();
-    const attendee = new CalendarAttendee("email", "tentative", true, true);
-    const event = new CalendarEvent(
-      "id",
-      "title",
-      now,
-      false,
-      null,
-      null,
-      null,
-      [attendee]
-    );
-    const result = new CalendarResult([event]);
-    result.filterBeyond(2);
-    expect(result.events.length).toBe(1);
+    test("not removed", () => {
+      const now = new Date();
+      const event = new CalendarEvent("id", "test", now, false);
+      const result = new CalendarResult([event]);
+      result.filterIgnored(["foo", "bar"]);
+      expect(result.events.length).toBe(1);
+    });
   });
 });
