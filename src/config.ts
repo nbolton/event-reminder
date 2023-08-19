@@ -18,6 +18,7 @@ export class Config {
   DATASTORE_EMULATOR_HOST: string | null;
   REMINDER_TIME_MINS: number;
   IGNORE_EVENTS: string[] = [];
+  DEBUG_VERBOSE: boolean;
 
   constructor() {
     Config.load(".env.dev.yaml");
@@ -37,6 +38,7 @@ export class Config {
     this.TWILIO_TOKEN = Config.get("TWILIO_TOKEN");
     this.REMINDER_TIME_MINS = Number.parseInt(Config.get("REMINDER_TIME_MINS"));
     this.DATASTORE_EMULATOR_HOST = process.env.DATASTORE_EMULATOR_HOST || null;
+    this.DEBUG_VERBOSE = process.env.DEBUG_VERBOSE === "true";
 
     const ignoreEvents = process.env.IGNORE_EVENTS;
     if (ignoreEvents) {

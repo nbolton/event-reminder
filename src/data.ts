@@ -35,18 +35,8 @@ export class Data {
     return event.start == start;
   }
 
-  static async test() {
-    const id = "foo";
-    const start = "bar";
-
-    Data.writeEvent(id, start);
-
-    const exists = Data.readEvent(id, start);
-    if (!exists) {
-      throw Error("expected data didn't exist");
-    }
-
-    const key = datastore.key([id, start]);
+  static async deleteEvent(id: string) {
+    const key = datastore.key([DATA_KIND, id]);
     await datastore.delete(key);
   }
 }

@@ -9,7 +9,6 @@ import { config } from "./config";
 const SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
 const TOKEN_PATH = path.join(process.cwd(), "token.json");
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
-const DEBUG_EVENT_DATA = false;
 
 export class CalendarAttendee {
   email: string | null;
@@ -206,19 +205,6 @@ export class Calendar {
     return new CalendarResult(await getNextEvents(this.auth, this.id, limit));
   }
 
-  static async test() {
-    console.log("test calendar integration");
-
-    console.log("getting calendar auth");
-    const calendarAuth = await Calendar.authorize();
-
-    const business = new Calendar(config().CALENDAR_BUSINESS, calendarAuth);
-    console.log("business events", await business.getEvents(10));
-
-    const personal = new Calendar(config().CALENDAR_PERSONAL, calendarAuth);
-    console.log("personal events", await personal.getEvents(10));
-  }
-
   static async authorize(): Promise<OAuth2Client> {
     return authorize();
   }
@@ -306,7 +292,7 @@ async function getNextEvents(
   if (gcEvents && gcEvents.length !== 0) {
     console.debug(`adding ${gcEvents.length} events for ${calendarId}`);
     gcEvents.map((gcEvent: calendar_v3.Schema$Event, _i: any) => {
-      if (DEBUG_EVENT_DATA) {
+      if (config().DEBUG_VERBOSE) {
         console.debug("event", gcEvent);
       }
 

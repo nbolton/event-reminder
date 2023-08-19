@@ -26,14 +26,4 @@ export class Slack {
   slack() {
     return new WebClient(this.token);
   }
-
-  static async test(businessChannel: string, personalChannel: string) {
-    console.log("test business slack integration");
-
-    const business = new Slack(config().SLACK_TOKEN_BUSINESS);
-    business.send(businessChannel, "Test message for business Slack");
-
-    const personal = new Slack(config().SLACK_TOKEN_PERSONAL);
-    personal.send(personalChannel, "Test message for personal Slack");
-  }
 }

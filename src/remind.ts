@@ -2,7 +2,7 @@ import { Calendar, CalendarEvent } from "./calendar";
 import { config } from "./config";
 import { Data } from "./data";
 import { Slack } from "./slack";
-import { Twilio } from "./twilio";
+import { Phone } from "./phone";
 
 async function sendReminder(
   calendarAuth: any,
@@ -41,7 +41,7 @@ async function sendReminder(
     slack.send(slackChannel, slackMessage(event));
 
     if (config().PHONE_ENABLE) {
-      const twilio = new Twilio();
+      const twilio = new Phone();
       twilio.call(twiml(event, eventType));
     } else {
       console.info("phone reminder disabled");
@@ -160,18 +160,4 @@ export async function sendReminders() {
   }
 
   console.log("finished sending reminders");
-}
-
-export async function testReminderServices() {
-  console.log("running integration tests");
-
-  const slackBusiness = config().SLACK_CHANNEL_BUSINESS;
-  const slackPersonal = config().SLACK_CHANNEL_PERSONAL;
-
-  Calendar.test();
-  Slack.test(slackBusiness, slackPersonal);
-  Twilio.test();
-  Data.test();
-
-  console.log("finished integration tests");
 }
