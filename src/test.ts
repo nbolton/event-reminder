@@ -20,6 +20,11 @@ export async function testServices(arg?: string) {
       testPhone();
       break;
     }
+
+    case "phone-listen": {
+      testPhoneListen();
+      break;
+    }
   }
   console.log("finished testing");
 }
@@ -68,6 +73,22 @@ async function testPhone() {
       `<Pause length="2" />` +
       `<Say>Well, gotta go now, see ya!</Say>` +
       `<Pause length="2" />` +
+      `</Response>`
+  );
+}
+
+async function testPhoneListen() {
+  const callback = config().PHONE_CALLBACK + "?mode=test";
+  console.log("test twilio phone service (listen)");
+  console.log("gather callback:", callback);
+  const phone = new Phone();
+  phone.call(
+    `<Response>` +
+      `<Pause length="2" />` +
+      `<Say>Hello, please go ahead and say something.</Say>` +
+      `<Gather input="speech" speechTimeout="1" speechModel="experimental_conversations" action="${callback}" />` +
+      `<Say>Sorry, I didn't hear anything.</Say>` +
+      `<Pause length="1" />` +
       `</Response>`
   );
 }
