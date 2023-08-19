@@ -11,7 +11,8 @@
     "test:integ": "tsc && ts-node src/main.ts --test",
     "local:functions": "tsc && functions-framework --target=check-calendar",
     "local:datastore": "gcloud beta emulators datastore start",
-    "gcloud:auth": "gcloud auth application-default login",
+    "gcloud:auth": "gcloud auth login",
+    "gcloud:auth:sdk": "gcloud auth application-default login",
     "deploy": "tsc && gcloud functions deploy check-calendar --gen2 --runtime=nodejs20 --region=europe-west2 --entry-point=check-calendar --trigger-http --allow-unauthenticated --env-vars-file .env.yaml",
     "prod:run": "curl https://europe-west2-event-reminder-396013.cloudfunctions.net/check-calendar",
     "prod:test": "curl https://europe-west2-event-reminder-396013.cloudfunctions.net/check-calendar?test"

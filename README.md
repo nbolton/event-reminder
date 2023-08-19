@@ -2,4 +2,18 @@
 
 Depends on: https://cloud.google.com/sdk/docs/install
 
-Run `npm run gcloud:auth` before running `npm run local:datastore`.
+## Quick start
+
+First time:
+1. `npm run ci`
+2. `npm run gcloud:auth:sdk`
+
+After that:
+1. `npm run local:datastore`
+2. `npm run start`
+
+## Deploy to gcloud
+
+1. `npm run gcloud:auth`
+2. `npm run deploy`
+3. `npm run prod:run`
