@@ -6,16 +6,20 @@ Checks Google Calendar for new events, sends you a message on Slack, and calls y
 
 ## Quick start
 
-**Depends on:** [gcloud CLI](https://cloud.google.com/sdk/docs/install)
+### First time
 
-**First time:**
+Copy `.env.yaml.example` to `.env.yaml` and fill in the blanks.
+
+Install [gcloud CLI](https://cloud.google.com/sdk/docs/install).
+
 
 ```
 npm run ci
+npm run gcloud:auth
 npm run gcloud:auth:sdk
 ```
 
-**After that:**
+### After that
 ```
 npm run local:datastore
 npm run start
@@ -24,7 +28,6 @@ npm run start
 ## Deploy to gcloud
 
 ```
-npm run gcloud:auth
 npm run deploy
 npm run prod:run
 ```
