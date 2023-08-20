@@ -28,13 +28,23 @@ ff.http("phone-callback", async (req: ff.Request, res: ff.Response) => {
       res.send(await phone.callbackTest(speechResult, confidence));
       break;
 
-    case "remind":
+    case "remind": {
       const eventId = path[1];
       if (!eventId) {
         throw Error("missing error id");
       }
       res.send(await phone.callbackRemind(speechResult, confidence, eventId));
       break;
+    }
+
+    case "action": {
+      const eventId = path[1];
+      if (!eventId) {
+        throw Error("missing error id");
+      }
+      res.send(await phone.callbackAction(speechResult, confidence, eventId));
+      break;
+    }
 
     default:
       res.status(400).send();

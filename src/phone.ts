@@ -41,12 +41,51 @@ export class Phone {
     const { title } = event;
     const minsStr = event.minsStr();
     const intro = config().PHONE_INTRO;
+
+    const callback = this.callbackBaseUrl() + `/action/${event.id}`;
     const twimlElements =
       `<Say>${intro}, you have ${event.typeInfo()} ${minsStr}:</Say>` +
+      `<Pause length="1" />` +
       `<Say>${title}</Say>` +
       `<Pause length="2" />` +
+      `<Gather ` +
+      `actionOnEmptyResult="true" ` +
+      `input="speech" ` +
+      `speechTimeout="3" ` +
+      `speechModel="experimental_utterances" ` +
+      `action="${callback}">` +
+      `<Say>Are you still able to make the event?</Say>` +
+      `</Gather>`;
+
+    return this.callback(speechResult, confidence, twimlElements);
+  }
+
+  async callbackAction(
+    speechResult: string | null,
+    confidence: number | null,
+    eventId: string
+  ) {
+    const event = await Data.readEvent(eventId);
+
+    let response;
+    if (!speechResult) {
+      response = "Sorry, I didn't hear you say anything.";
+    } else if (speechResult?.match(/no/i)) {
+      // TODO: set RSVP to no, and ask to reschedule
+      response = `Ok, I'll reschedule the event: ${event.title}`;
+      event.slackMessage(`Event needs to be rescheduled: ${event.title}`);
+    } else if (speechResult?.match(/yes/i)) {
+      response = "Ok, I won't do anything.";
+    } else {
+      response = `Sorry, I didn't understand what you meant by: ${speechResult}`;
+    }
+
+    const twimlElements =
+      `<Say>${response}</Say>` +
+      `<Pause length="1" />` +
       `<Say>Goodbye</Say>` +
       `<Pause length="1" />`;
+
     return this.callback(speechResult, confidence, twimlElements);
   }
 
@@ -57,7 +96,7 @@ export class Phone {
     } else {
       message = `Sorry, I didn't hear you say anything.`;
     }
-    const twimlElements = `<Say>${message}</Say>`;
+    const twimlElements = `<Say>${message}</Say><Pause length="1" />`;
     return this.callback(speechResult, confidence, twimlElements);
   }
 
@@ -81,7 +120,7 @@ export class Phone {
         throw Error("empty twiml");
       }
       console.log("twiml response:", twimlElements);
-      return `<Response>` + twimlElements + `<Pause length="1" /></Response>`;
+      return `<Response>` + twimlElements + `</Response>`;
     } catch (err) {
       console.error("error sending twiml response:", err);
       const errStr = err instanceof Error ? err.message : (err as string);

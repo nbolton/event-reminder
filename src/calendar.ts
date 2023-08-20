@@ -5,6 +5,7 @@ import { calendar_v3, google } from "googleapis";
 import path from "path";
 import process from "process";
 import { config } from "./config";
+import { Slack } from "./slack";
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
 const TOKEN_PATH = path.join(process.cwd(), "token.json");
@@ -141,6 +142,12 @@ export class CalendarEvent {
     } else {
       return null;
     }
+  }
+
+  slackMessage(message: string) {
+    const slack = Slack.forCalendar(this.type);
+    const channel = Slack.channelForCalendar(this.type);
+    slack.send(channel, message);
   }
 }
 
