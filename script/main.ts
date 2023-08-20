@@ -43,18 +43,19 @@ function curl(parts: string[]) {
 function deployStage(parts: string[]) {
   switch (parts[0]) {
     case "check-calendar":
-      return runDeploy("check-calendar-stage", "check-calendar");
+      return runDeploy("check-calendar-stage", "check-calendar", "stage");
     case "phone-callback":
-      return runDeploy("phone-callback-stage", "phone-callback");
+      return runDeploy("phone-callback-stage", "phone-callback", "stage");
   }
 }
 
 function deployProd(parts: string[]) {
+  const env = "prod";
   switch (parts[0]) {
     case "check-calendar":
-      return runDeploy("check-calendar", "check-calendar");
+      return runDeploy("check-calendar", "check-calendar", "prod");
     case "phone-callback":
-      return runDeploy("phone-callback", "phone-callback");
+      return runDeploy("phone-callback", "phone-callback", "prod");
   }
 }
 
@@ -92,7 +93,11 @@ async function runCurl(args: string[]) {
   await run("curl", ["-s", "-S"].concat(args));
 }
 
-async function runDeploy(target: string, entryPoint: string) {
+async function runDeploy(
+  target: string,
+  entryPoint: string,
+  deployEnv: string
+) {
   await runTsc();
   run("gcloud", [
     "functions",
@@ -104,7 +109,7 @@ async function runDeploy(target: string, entryPoint: string) {
     "--region=europe-west2",
     "--trigger-http",
     "--allow-unauthenticated",
-    "--env-vars-file=.env.yaml",
+    `--set-env-vars=DEPLOY_ENV=${deployEnv}`,
   ]);
 }
 

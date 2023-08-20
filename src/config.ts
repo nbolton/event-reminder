@@ -28,7 +28,12 @@ export class Config {
   TWILIO_TOKEN: string;
 
   constructor() {
-    Config.load(".env.dev.yaml");
+    console.debug("loading config");
+
+    const env = process.env.DEPLOY_ENV || "dev";
+    console.debug("deploy env:", env);
+
+    Config.load(`.env.${env}.yaml`);
     Config.load(".env.yaml");
 
     this.DEBUG_VERBOSE = process.env.DEBUG_VERBOSE === "true";
@@ -62,7 +67,7 @@ export class Config {
 
   private static load(path: string) {
     if (fs.existsSync(path)) {
-      console.log(`loading ${path}`);
+      console.log(`loading file: ${path}`);
       require("dotenv-yaml").config({ path: path });
     }
   }
