@@ -17,8 +17,6 @@ ff.http("check-calendar", async (req: ff.Request, res: ff.Response) => {
 ff.http("phone-callback", async (req: ff.Request, res: ff.Response) => {
   const path = req.path.split("/").filter((e) => e);
   console.log("phone callback, path:", path);
-
-  console.debug("request body:", req.body);
   const speechResult: string | null = req.body.SpeechResult || null;
   const confidence: number | null = req.body.Confidence || null;
 
