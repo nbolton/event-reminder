@@ -20,12 +20,12 @@
     "deploy:prod:phone-callback": "ts-node script/main.ts deploy:prod:phone-callback",
     "deploy:stage:check-calendar": "ts-node script/main.ts deploy:stage:check-calendar",
     "deploy:stage:phone-callback": "ts-node script/main.ts deploy:stage:phone-callback",
-    "prod:check-calendar": "ts-node script/main.ts prod:check-calendar",
-    "prod:check-calendar-test": "ts-node script/main.ts prod:check-calendar-test",
-    "prod:phone-callback": "ts-node script/main.ts prod:phone-callback",
-    "stage:check-calendar": "ts-node script/main.ts stage:check-calendar",
-    "stage:check-calendar-test": "ts-node script/main.ts stage:check-calendar-test",
-    "stage:phone-callback": "ts-node script/main.ts stage:phone-callback"
+    "curl:prod:check-calendar": "ts-node script/main.ts curl:prod:check-calendar",
+    "curl:prod:check-calendar-test": "ts-node script/main.ts curl:prod:check-calendar-test",
+    "curl:prod:phone-callback": "ts-node script/main.ts curl:prod:phone-callback",
+    "curl:stage:check-calendar": "ts-node script/main.ts curl:stage:check-calendar",
+    "curl:stage:check-calendar-test": "ts-node script/main.ts curl:stage:check-calendar-test",
+    "curl:stage:phone-callback": "ts-node script/main.ts curl:stage:phone-callback"
   },
   "author": "Nick Bolton",
   "license": "ISC",

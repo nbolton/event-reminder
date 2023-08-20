@@ -15,10 +15,8 @@ function main() {
   switch (parts[0]) {
     case "deploy":
       return deploy(next);
-    case "prod":
-      return prod(next);
-    case "stage":
-      return stage(next);
+    case "curl":
+      return curl(next);
   }
 }
 
@@ -32,60 +30,70 @@ function deploy(parts: string[]) {
   }
 }
 
+function curl(parts: string[]) {
+  const next = parts.slice(1);
+  switch (parts[0]) {
+    case "stage":
+      return curlStage(next);
+    case "prod":
+      return curlProd(next);
+  }
+}
+
 function deployStage(parts: string[]) {
   switch (parts[0]) {
     case "check-calendar":
-      return gcDeploy("check-calendar-stage", "check-calendar");
+      return runDeploy("check-calendar-stage", "check-calendar");
     case "phone-callback":
-      return gcDeploy("phone-callback-stage", "phone-callback");
+      return runDeploy("phone-callback-stage", "phone-callback");
   }
 }
 
 function deployProd(parts: string[]) {
   switch (parts[0]) {
     case "check-calendar":
-      return gcDeploy("check-calendar", "check-calendar");
+      return runDeploy("check-calendar", "check-calendar");
     case "phone-callback":
-      return gcDeploy("phone-callback", "phone-callback");
+      return runDeploy("phone-callback", "phone-callback");
   }
 }
 
-function prod(parts: string[]) {
+function curlProd(parts: string[]) {
   switch (parts[0]) {
     case "phone-callback":
-      return curl([`${BASE_URL}/phone-callback`]);
+      return runCurl([`${BASE_URL}/phone-callback`]);
 
     case "check-calendar":
-      return curl([`${BASE_URL}/check-calendar`]);
+      return runCurl([`${BASE_URL}/check-calendar`]);
 
     case "check-calendar-test":
-      return curl([`${BASE_URL}/check-calendar?test`]);
+      return runCurl([`${BASE_URL}/check-calendar?test`]);
   }
 }
 
-function stage(parts: string[]) {
+function curlStage(parts: string[]) {
   switch (parts[0]) {
     case "phone-callback":
-      return curl([`${BASE_URL}/phone-callback-stage`]);
+      return runCurl([`${BASE_URL}/phone-callback-stage`]);
 
     case "check-calendar":
-      return curl([`${BASE_URL}/check-calendar-stage`]);
+      return runCurl([`${BASE_URL}/check-calendar-stage`]);
 
     case "check-calendar-test":
-      return curl([`${BASE_URL}/check-calendar-stage?test`]);
+      return runCurl([`${BASE_URL}/check-calendar-stage?test`]);
   }
 }
 
-async function tsc() {
+async function runTsc() {
   await run("npx", ["tsc"]);
 }
 
-async function curl(args: string[]) {
+async function runCurl(args: string[]) {
   await run("curl", ["-s", "-S"].concat(args));
 }
 
-async function gcDeploy(target: string, entryPoint: string) {
-  await tsc();
+async function runDeploy(target: string, entryPoint: string) {
+  await runTsc();
   run("gcloud", [
     "functions",
     "deploy",
