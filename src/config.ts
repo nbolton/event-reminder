@@ -8,6 +8,7 @@ export class Config {
   REMINDER_TIME_MINS: number;
   IGNORE_EVENTS: string[] = [];
   DEPLOY_BASE_URL: string;
+  DEPLOY_ENV: string;
 
   CALENDAR_BUSINESS: string;
   CALENDAR_PERSONAL: string;
@@ -21,7 +22,6 @@ export class Config {
   PHONE_NUMBER_TO: string;
   PHONE_NUMBER_FROM: string;
   PHONE_INTRO: string;
-  PHONE_CALLBACK: string | null;
   PHONE_VOICEMAIL_MATCH: string | null;
 
   TWILIO_SID: string;
@@ -30,10 +30,10 @@ export class Config {
   constructor() {
     console.debug("loading config");
 
-    const env = process.env.DEPLOY_ENV || "dev";
-    console.debug("deploy env:", env);
+    this.DEPLOY_ENV = process.env.DEPLOY_ENV || "dev";
+    console.debug("deploy env:", this.DEPLOY_ENV);
 
-    Config.load(`.env.${env}.yaml`);
+    Config.load(`.env.${this.DEPLOY_ENV}.yaml`);
     Config.load(".env.yaml");
 
     this.DEBUG_VERBOSE = process.env.DEBUG_VERBOSE === "true";
@@ -56,7 +56,6 @@ export class Config {
     this.PHONE_NUMBER_TO = Config.get("PHONE_NUMBER_TO");
     this.PHONE_NUMBER_FROM = Config.get("PHONE_NUMBER_FROM");
     this.PHONE_INTRO = Config.get("PHONE_INTRO");
-    this.PHONE_CALLBACK = process.env.PHONE_CALLBACK || null;
     this.PHONE_VOICEMAIL_MATCH = process.env.PHONE_VOICEMAIL_MATCH || null;
 
     const ignoreEvents = process.env.IGNORE_EVENTS;

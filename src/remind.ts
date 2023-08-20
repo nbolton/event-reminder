@@ -1,20 +1,24 @@
-import { Calendar, CalendarEvent } from "./calendar";
+import {
+  Calendar,
+  CalendarEvent,
+  CalendarType as CalendarType,
+} from "./calendar";
 import { config } from "./config";
 import { Data } from "./data";
 import { Slack } from "./slack";
 import { Phone } from "./phone";
 
 async function sendReminder(
+  calendarType: CalendarType,
   calendarAuth: any,
   calendarId: string,
   slackToken: string,
-  slackChannel: string,
-  eventType: string
+  slackChannel: string
 ) {
   const limit = 10;
   const maxMins = config().REMINDER_TIME_MINS;
 
-  const calendar = new Calendar(calendarId, calendarAuth);
+  const calendar = new Calendar(calendarType, calendarId, calendarAuth);
   const result = await calendar.getEvents(limit);
   result.filterAllDay();
   result.filterBeyond(maxMins);
@@ -32,23 +36,25 @@ async function sendReminder(
 
     console.debug(`checking calendar event, id=${id}, title=${title}`);
 
-    if (await Data.readEvent(id, startIso)) {
+    if (await Data.isReminderSent(id, startIso)) {
       console.debug(`reminder already sent for id: ${id}`);
       continue;
     }
+
+    await Data.saveEvent(event);
 
     const slack = new Slack(slackToken);
     slack.send(slackChannel, slackMessage(event));
 
     if (config().PHONE_ENABLE) {
       const twilio = new Phone();
-      twilio.call(twiml(event, eventType));
+      twilio.remind(event);
     } else {
       console.info("phone reminder disabled");
     }
 
     console.debug("remembering event reminder");
-    await Data.writeEvent(id, startIso);
+    await Data.setReminderSent(id, startIso);
     return true;
   }
 
@@ -116,43 +122,27 @@ function htmlToText(text: string) {
   return text;
 }
 
-function twiml(event: CalendarEvent, eventType: string): string {
-  const minsStr = event.minsStr();
-  const { title } = event;
-  const intro = config().PHONE_INTRO;
-  return (
-    `<Response>` +
-    `<Pause length="3" />` +
-    `<Say>${intro}, you have ${eventType} ${minsStr}:</Say>` +
-    `<Say>${title}</Say>` +
-    `<Pause length="2" />` +
-    `<Say>Goodbye</Say>` +
-    `<Pause length="2" />` +
-    `</Response>`
-  );
-}
-
 export async function sendReminders() {
   console.log("getting calendar auth");
   const calendarAuth = await Calendar.authorize();
 
   console.log("sending business reminder");
   const sentBusiness = await sendReminder(
+    CalendarType.business,
     calendarAuth,
     config().CALENDAR_BUSINESS,
     config().SLACK_TOKEN_BUSINESS,
-    config().SLACK_CHANNEL_BUSINESS,
-    "a business event"
+    config().SLACK_CHANNEL_BUSINESS
   );
 
   if (!sentBusiness) {
     console.log("sending personal reminder");
     await sendReminder(
+      CalendarType.personal,
       calendarAuth,
       config().CALENDAR_PERSONAL,
       config().SLACK_TOKEN_PERSONAL,
-      config().SLACK_CHANNEL_PERSONAL,
-      "a personal event"
+      config().SLACK_CHANNEL_PERSONAL
     );
   } else {
     // avoids multiple phone call attempts at same time.

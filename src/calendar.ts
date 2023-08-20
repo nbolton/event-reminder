@@ -10,6 +10,11 @@ const SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
 const TOKEN_PATH = path.join(process.cwd(), "token.json");
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
 
+export enum CalendarType {
+  business,
+  personal,
+}
+
 export class CalendarAttendee {
   email: string | null;
   status: string | null;
@@ -31,9 +36,10 @@ export class CalendarAttendee {
 
 export class CalendarEvent {
   id: string;
+  type: CalendarType;
   title: string;
   start: Date;
-  allDay: boolean;
+  allDay?: boolean | null;
   description?: string | null;
   location?: string | null;
   hangoutLink?: string | null;
@@ -43,15 +49,17 @@ export class CalendarEvent {
 
   constructor(
     id: string,
+    type: CalendarType,
     title: string,
     start: Date,
-    allDay: boolean,
+    allDay?: boolean | null,
     description?: string | null,
     location?: string | null,
     hangoutLink?: string | null,
     attendees?: CalendarAttendee[]
   ) {
     this.id = id;
+    this.type = type;
     this.title = title;
     this.start = start;
     this.allDay = allDay;
@@ -88,6 +96,17 @@ export class CalendarEvent {
       timeZoneName: "short",
     });
     return `${date} at ${time}`;
+  }
+
+  typeInfo() {
+    switch (this.type) {
+      case CalendarType.business:
+        return "a business event";
+      case CalendarType.personal:
+        return "a personal event";
+      default:
+        throw Error("unsupported type");
+    }
   }
 
   minsStr() {
@@ -193,16 +212,20 @@ export class CalendarResult {
 }
 
 export class Calendar {
+  type: CalendarType;
   id: string;
   auth: OAuth2Client;
 
-  constructor(id: string, auth: OAuth2Client) {
+  constructor(type: CalendarType, id: string, auth: OAuth2Client) {
+    this.type = type;
     this.id = id;
     this.auth = auth;
   }
 
   async getEvents(limit: number) {
-    return new CalendarResult(await getNextEvents(this.auth, this.id, limit));
+    return new CalendarResult(
+      await getNextEvents(this.auth, this.type, this.id, limit)
+    );
   }
 
   static async authorize(): Promise<OAuth2Client> {
@@ -274,6 +297,7 @@ async function authorize(): Promise<OAuth2Client> {
  */
 async function getNextEvents(
   auth: OAuth2Client,
+  type: CalendarType,
   calendarId: string,
   max: number
 ): Promise<CalendarEvent[]> {
@@ -333,6 +357,7 @@ async function getNextEvents(
       events.push(
         new CalendarEvent(
           id,
+          type,
           title,
           start,
           allDay,

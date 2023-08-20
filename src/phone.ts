@@ -1,55 +1,87 @@
+import { CalendarEvent } from "./calendar";
 import { config } from "./config";
-
-export enum PhoneCallbackMode {
-  Default,
-  Test,
-}
+import { Data } from "./data";
 
 export class Phone {
   call(twiml: string) {
     const to = config().PHONE_NUMBER_TO;
     const from = config().PHONE_NUMBER_FROM;
     console.log(`starting twilio call ${from} to ${to}`);
+    console.debug(`twiml: ${twiml}`);
     twilio().calls.create({ twiml, to, from });
   }
 
-  callback(mode: PhoneCallbackMode, speechResult: string, confidence: string) {
+  remind(event: CalendarEvent) {
+    const callback = this.callbackBaseUrl() + `/remind/${event.id}`;
+    const twiml =
+      `<Response>` +
+      `<Gather ` +
+      `actionOnEmptyResult="true" ` +
+      `input="speech" ` +
+      `speechTimeout="1" ` +
+      `speechModel="experimental_conversations" ` +
+      `action="${callback}" />` +
+      `</Response>`;
+    this.call(twiml);
+  }
+
+  callbackBaseUrl() {
+    const base = config().DEPLOY_BASE_URL;
+    const isStage = config().DEPLOY_ENV === "stage";
+    const location = isStage ? "/phone-callback-stage" : "/phone-callback";
+    return base + location;
+  }
+
+  async callbackRemind(
+    speechResult: string | null,
+    confidence: number | null,
+    eventId: string
+  ) {
+    const event = await Data.readEvent(eventId);
+    const { title } = event;
+    const minsStr = event.minsStr();
+    const intro = config().PHONE_INTRO;
+    const twimlElements =
+      `<Say>${intro}, you have ${event.typeInfo()} ${minsStr}:</Say>` +
+      `<Say>${title}</Say>` +
+      `<Pause length="2" />` +
+      `<Say>Goodbye</Say>` +
+      `<Pause length="1" />`;
+    return this.callback(speechResult, confidence, twimlElements);
+  }
+
+  async callbackTest(speechResult: string | null, confidence: number | null) {
+    let message;
+    if (speechResult) {
+      message = `Here's what I heard you say: ${speechResult}`;
+    } else {
+      message = `Sorry, I didn't hear you say anything.`;
+    }
+    const twimlElements = `<Say>${message}</Say>`;
+    return this.callback(speechResult, confidence, twimlElements);
+  }
+
+  async callback(
+    speechResult: string | null,
+    confidence: number | null,
+    twimlElements: string
+  ) {
     try {
-      console.log("speech result:", speechResult);
-      console.log("speech result confidence:", confidence);
+      console.log("callback speech result:", speechResult);
+      console.log("callback confidence:", confidence);
 
       const vmMatch = config().PHONE_VOICEMAIL_MATCH;
-      if (vmMatch && speechResult.match(vmMatch)) {
+      if (vmMatch && speechResult?.match(vmMatch)) {
         console.log("aborting, speech result is voicemail");
         // empty response hangs up immediately, preventing voicemail from being left
         return "<Response></Response>";
       }
 
-      let twiml;
-      switch (mode) {
-        case PhoneCallbackMode.Default:
-          break;
-
-        case PhoneCallbackMode.Test:
-          let message;
-          if (speechResult) {
-            message = `Here's what I heard you say: ${speechResult}`;
-          } else {
-            message = `Sorry, I didn't hear you say anything.`;
-          }
-          twiml =
-            `<Response>` +
-            `<Say>${message}</Say>` +
-            `<Pause length="1" />` +
-            `</Response>`;
-          break;
-      }
-
-      if (!twiml) {
+      if (!twimlElements) {
         throw Error("empty twiml");
       }
-      console.log("twiml response:", twiml);
-      return twiml;
+      console.log("twiml response:", twimlElements);
+      return `<Response>` + twimlElements + `<Pause length="1" /></Response>`;
     } catch (err) {
       console.error("error sending twiml response:", err);
       const errStr = err instanceof Error ? err.message : (err as string);

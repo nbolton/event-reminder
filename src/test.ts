@@ -1,5 +1,5 @@
 import { calendar } from "googleapis/build/src/apis/calendar";
-import { Calendar } from "./calendar";
+import { Calendar, CalendarEvent, CalendarType } from "./calendar";
 import { config } from "./config";
 import { Data } from "./data";
 import { Phone } from "./phone";
@@ -12,6 +12,11 @@ export async function testServices(arg?: string) {
       testCalendar();
       testSlack();
       testPhone();
+      testData();
+      break;
+    }
+
+    case "data": {
       testData();
       break;
     }
@@ -35,13 +40,21 @@ async function testCalendar() {
   console.log("getting calendar auth");
   const calendarAuth = await Calendar.authorize();
 
-  const business = new Calendar(config().CALENDAR_BUSINESS, calendarAuth);
+  const business = new Calendar(
+    CalendarType.business,
+    config().CALENDAR_BUSINESS,
+    calendarAuth
+  );
   const businessEvents = await business.getEvents(10);
   if (config().DEBUG_VERBOSE) {
     console.log("business events:", businessEvents);
   }
 
-  const personal = new Calendar(config().CALENDAR_PERSONAL, calendarAuth);
+  const personal = new Calendar(
+    CalendarType.personal,
+    config().CALENDAR_PERSONAL,
+    calendarAuth
+  );
   const personalEvents = await personal.getEvents(10);
   if (config().DEBUG_VERBOSE) {
     console.log("personal events:", personalEvents);
@@ -78,10 +91,10 @@ async function testPhone() {
 }
 
 async function testPhoneListen() {
-  const callback = config().PHONE_CALLBACK + "?mode=test";
+  const phone = new Phone();
+  const callback = phone.callbackBaseUrl() + "/test";
   console.log("test twilio phone service (listen)");
   console.log("gather callback:", callback);
-  const phone = new Phone();
   phone.call(
     `<Response>` +
       `<Pause length="2" />` +
@@ -97,12 +110,37 @@ async function testData() {
   const id = "foo";
   const start = "bar";
 
-  Data.writeEvent(id, start);
+  Data.setReminderSent(id, start);
 
-  const exists = Data.readEvent(id, start);
+  const exists = Data.isReminderSent(id, start);
   if (!exists) {
     throw Error("expected data didn't exist");
   }
 
-  await Data.deleteEvent(id);
+  await Data.clearReminderSent(id);
+
+  const now = new Date();
+  const eIn = new CalendarEvent("test", CalendarType.personal, "title", now);
+
+  console.log("event write:", eIn);
+  await Data.saveEvent(eIn);
+
+  const eOut = await Data.readEvent("test");
+  console.log("event read:", eOut);
+
+  if (eOut.id !== eIn.id) {
+    throw Error("id mismatch");
+  }
+
+  if (eOut.type !== eIn.type) {
+    throw Error("type mismatch");
+  }
+
+  if (eOut.title !== eIn.title) {
+    throw Error("title mismatch");
+  }
+
+  if (eOut.start.getDate() !== eIn.start.getDate()) {
+    throw Error("start mismatch");
+  }
 }
