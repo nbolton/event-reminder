@@ -66,7 +66,7 @@ export class CalendarEvent {
     this.description = description;
     this.location = location;
     this.hangoutLink = hangoutLink;
-    this.attendees = attendees || [];
+    this.attendees = attendees ?? [];
 
     this.attendees.forEach((attendee) => {
       const { status, organizer, self } = attendee;
@@ -240,7 +240,7 @@ async function loadTokenIfExists(): Promise<OAuth2Client | null> {
   if (!fs.existsSync(TOKEN_PATH)) {
     return null;
   }
-  const content = await fs.readFileSync(TOKEN_PATH, "utf8");
+  const content = fs.readFileSync(TOKEN_PATH, "utf8");
   const token = JSON.parse(content);
   return google.auth.fromJSON(token) as OAuth2Client;
 }
@@ -249,7 +249,7 @@ async function loadTokenIfExists(): Promise<OAuth2Client | null> {
  * Serializes credentials to a file compatible with GoogleAUth.fromJSON.
  */
 async function saveCredentials(client: OAuth2Client): Promise<void> {
-  const content = await fs.readFileSync(CREDENTIALS_PATH, "utf8");
+  const content = fs.readFileSync(CREDENTIALS_PATH, "utf8");
   const keys = JSON.parse(content);
   const key = keys.installed || keys.web;
   const payload = JSON.stringify({
@@ -258,7 +258,7 @@ async function saveCredentials(client: OAuth2Client): Promise<void> {
     client_secret: key.client_secret,
     refresh_token: client.credentials.refresh_token,
   });
-  await fs.writeFileSync(TOKEN_PATH, payload);
+  fs.writeFileSync(TOKEN_PATH, payload);
 }
 
 /**
