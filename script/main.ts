@@ -96,8 +96,7 @@ async function gcDeploy(target: string, entryPoint: string) {
     "--region=europe-west2",
     "--trigger-http",
     "--allow-unauthenticated",
-    "--env-vars-file",
-    ".env.yaml",
+    "--env-vars-file=.env.yaml",
   ]);
 }
 
@@ -119,7 +118,7 @@ async function run(command: string, args?: string[]) {
       if (code !== 0) {
         throw Error(`${command} exited with code ${code}`);
       }
-      console.debug(`${command} exited ok`);
+      console.debug(`\n${command} exited ok`);
       resolveFunc(code);
     });
   });
