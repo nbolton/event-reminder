@@ -7,6 +7,7 @@ export class Config {
   DATASTORE_EMULATOR_HOST: string | null;
   REMINDER_TIME_MINS: number;
   IGNORE_EVENTS: string[] = [];
+  DEPLOY_BASE_URL: string;
 
   CALENDAR_BUSINESS: string;
   CALENDAR_PERSONAL: string;
@@ -33,6 +34,7 @@ export class Config {
     this.DEBUG_VERBOSE = process.env.DEBUG_VERBOSE === "true";
     this.REMINDER_TIME_MINS = Number.parseInt(Config.get("REMINDER_TIME_MINS"));
     this.DATASTORE_EMULATOR_HOST = process.env.DATASTORE_EMULATOR_HOST || null;
+    this.DEPLOY_BASE_URL = Config.get("DEPLOY_BASE_URL");
 
     this.CALENDAR_BUSINESS = Config.get("CALENDAR_BUSINESS");
     this.CALENDAR_PERSONAL = Config.get("CALENDAR_PERSONAL");
