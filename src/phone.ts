@@ -9,7 +9,7 @@ export class Phone {
   call(twiml: string) {
     const to = config().PHONE_NUMBER_TO;
     const from = config().PHONE_NUMBER_FROM;
-    console.log(`starting twilio call to: ${to}`);
+    console.log(`starting twilio call ${from} to ${to}`);
     twilio().calls.create({ twiml, to, from });
   }
 
