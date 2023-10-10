@@ -3,3 +3,4 @@ build
 .env*.yaml
 credentials.json
 token.json
+/coverage/

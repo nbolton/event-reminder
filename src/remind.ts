@@ -20,7 +20,10 @@ async function sendReminder(
 
   const calendar = new Calendar(calendarType, calendarId, calendarAuth);
   const result = await calendar.getEvents(limit);
+
+  // TODO: the allDay field needs improving.
   result.filterAllDay();
+
   result.filterBeyond(maxMins);
   result.filterNotAttending();
   result.filterIgnored(config().IGNORE_EVENTS);

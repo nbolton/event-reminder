@@ -331,7 +331,10 @@ async function getNextEvents(
       const id = gcEvent.id || null;
       const title = gcEvent.summary || null;
       const start = startStr ? new Date(startStr) : null;
+
+      // TODO: this is not a reliable way to determine all day events.
       const allDay = gcEvent.start?.dateTime === undefined;
+
       const description = gcEvent.description;
       const location = gcEvent.location;
       const hangoutLink = gcEvent.hangoutLink;
