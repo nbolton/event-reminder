@@ -1,4 +1,3 @@
-import { calendar } from "googleapis/build/src/apis/calendar";
 import { Calendar, CalendarEvent, CalendarType } from "./calendar";
 import { config } from "./config";
 import { Data } from "./data";

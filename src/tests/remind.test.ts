@@ -12,7 +12,7 @@ jest.mock("../config");
 jest.mock("../calendar");
 jest.mock("../data");
 jest.mock("../slack");
-jest.mock("../twilio");
+jest.mock("../phone");
 
 const CalendarMock = jest.mocked(Calendar);
 const CalendarEventResultMock = jest.mocked(CalendarResult);
